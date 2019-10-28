@@ -1,36 +1,55 @@
 import './components/article'
 
-const content = document.createElement('div');
-document.body.appendChild(content);
-    
-const select = document.createElement('select');
-content.appendChild(select);
+const template = document.createElement('template');
 
-const newsContainer = document.createElement('div');
-content.appendChild(newsContainer);
+template.innerHTML = `
+  <div class="content">
+    <select></select>
+    <section></section>
+  </div>
+`;
 
-getSources();
+class MainPage extends HTMLElement {
+    constructor() {
+      super();
+  
+      this._shadowRoot = this.attachShadow({ mode: 'open' });
+      this._shadowRoot.appendChild(template.content.cloneNode(true));
+      this.$select = this._shadowRoot.querySelector('select');
+      this.$section = this._shadowRoot.querySelector('section');
+    }
 
-async function getSources() {
-    return fetch`https://newsapi.org/v2/sources?language=en&apiKey=1da957a27579441483751f41847391bf`
-    .then(res => res.json())
-    .then(result => result.sources.forEach(item => {
+    async getSources() {
+        const response = await fetch`https://newsapi.org/v2/sources?language=en&apiKey=1da957a27579441483751f41847391bf`;
+        const data = await response.json();
+        this.sources = data.sources;
+    }
+  
+    connectedCallback() {
+      this.render();
+    }
+  
+    async render() {
+        await this.getSources();
+        this.sources.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item.id;
+            option.innerHTML = item.name;
+            
+            this.$select.appendChild(option);
+        });
 
-        const option = document.createElement('option');
-        option.value = item.id;
-        option.innerHTML = item.name;
-        
-        select.appendChild(option);
-    }));
-}
-
-select.onchange = function() {
-    newsContainer.innerHTML = '';
-    fetch(`https://newsapi.org/v2/top-headlines?sources=${select.value}&apiKey=1da957a27579441483751f41847391bf`)
-    .then(res => res.json())
-    .then(result => result.articles.forEach(article => {
-        const articleContainer = document.createElement('my-article');
-        articleContainer.data = JSON.stringify(article);
-        newsContainer.appendChild(articleContainer)
-    }));
-}
+        this.$select.addEventListener('change', async () => {
+            this.$section.innerHTML = '';
+            const response = await fetch(`https://newsapi.org/v2/top-headlines?sources=${this.$select.value}&apiKey=1da957a27579441483751f41847391bf`)
+            const data = await response.json();
+            data.articles.forEach(article => {
+                const articleContainer = document.createElement('my-article');
+                articleContainer.data = JSON.stringify(article);
+                this.$section.appendChild(articleContainer);
+            });
+        })
+    }
+  }
+  
+  window.customElements.define('main-page', MainPage);
