@@ -1,3 +1,5 @@
+import './components/article'
+
 const content = document.createElement('div');
 document.body.appendChild(content);
     
@@ -6,8 +8,6 @@ content.appendChild(select);
 
 const newsContainer = document.createElement('div');
 content.appendChild(newsContainer);
-
-console.log('doh')
 
 getSources();
 
@@ -29,25 +29,8 @@ select.onchange = function() {
     fetch(`https://newsapi.org/v2/top-headlines?sources=${select.value}&apiKey=1da957a27579441483751f41847391bf`)
     .then(res => res.json())
     .then(result => result.articles.forEach(article => {
-        const articleContainer = document.createElement('article');
-    
-        const title = document.createElement('a');
-        title.href = article.url;
-        title.innerHTML = article.title;
-        articleContainer.appendChild(title);
-
-        const thumbnail = document.createElement('img');
-        thumbnail.src = article.urlToImage;
-        articleContainer.appendChild(thumbnail);
-
-        const articleDescription = document.createElement('p');
-        articleDescription.innerHTML = article.description;
-        articleContainer.appendChild(articleDescription);
-
+        const articleContainer = document.createElement('my-article');
+        articleContainer.data = JSON.stringify(article);
         newsContainer.appendChild(articleContainer)
     }));
 }
-
-    console.log('doh')
-
-// el.selectedOptions[0].value
