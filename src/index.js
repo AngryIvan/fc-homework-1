@@ -1,12 +1,14 @@
 import './components/article'
+import mainPageStyle from './style/main-page'
 
 const template = document.createElement('template');
 
 template.innerHTML = `
-  <div class="content">
-    <select></select>
-    <section></section>
-  </div>
+    <style>${mainPageStyle}</style>
+    <div class="content">
+        <select></select>
+        <section></section>
+    </div>
 `;
 
 class MainPage extends HTMLElement {
