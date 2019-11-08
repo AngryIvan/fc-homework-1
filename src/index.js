@@ -8,7 +8,7 @@ template.innerHTML = `
     <style>${mainPageStyle}</style>
     <div class="content">
         <select></select>
-        <button>Click me for an error</button>
+        <button>Click me to throw an error</button>
         <section></section>
     </div>
 `;
@@ -36,11 +36,21 @@ class MainPage extends HTMLElement {
     }
 
     handleError() {
-        console.log('There has been an error')
+        import('./components/error').then(module => {
+            const handler = module.default;
+            handler.getInstance().render();
+            this.$section.appendChild(handler.getInstance());
+            const $popup = this._shadowRoot.querySelector('error-popup');
+            setTimeout(() => $popup.parentNode.removeChild($popup), 3000);
+        });
     }
   
     connectedCallback() {
       this.render();
+    }
+
+    async getArticles(source) {
+
     }
   
     async render() {
@@ -50,7 +60,9 @@ class MainPage extends HTMLElement {
             } catch {
                 this.handleError();
             }
+            
         })
+
         try {
             await this.getSources();
             this.sources.forEach(item => {

@@ -1,43 +1,34 @@
+import errorStyle from './error-style'
+
 const template = document.createElement('template');
 
 template.innerHTML = `
   <style>
-    .popup {
-      top: 0;
-      left: 0;
-      background-color: red;
-      width: 200px;
-      height: 200px;
-      position: absolute;
-      z-index: 2;
-    }
+    ${errorStyle}
   </style>
   <div class="popup">
-    <h2>There has been an error</h2>
+    <h3>There has been an error</h3>
   </div>
 `;
 
 export default class ErrorHandler extends HTMLElement {
   constructor() {
     super();
-    this.error = Math.random();
+
+    this._shadowRoot = this.attachShadow({ mode: 'open' });
+    this._shadowRoot.appendChild(template.content.cloneNode(true));
+
+    this.$popup = this._shadowRoot.querySelector('.popup');
   }
-
-  connectedCallback() {
-    this.render();
-  }
-
-
 
   static getInstance() {
     if (!ErrorHandler.instance) {
       ErrorHandler.instance = new ErrorHandler();
     }
-      return ErrorHandler.instance;
-    }
-
-  render() {
+    return ErrorHandler.instance;
   }
+    
+  render() {  }
 }
 
 window.customElements.define('error-popup', ErrorHandler);
