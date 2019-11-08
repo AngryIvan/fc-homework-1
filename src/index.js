@@ -1,6 +1,7 @@
 import './components/article'
-import mainPageStyle from './style/main-page-style'
+import mainPageStyle from './components/main-page-style'
 import API_KEY from './constants/API_KEY'
+import { FetchFactory } from './factory/FetchFactory';
 
 const template = document.createElement('template');
 
@@ -26,9 +27,7 @@ class MainPage extends HTMLElement {
 
     async getSources() {
         try {
-            const response = await fetch(`https://newsapi.org/v2/sources?language=en&apiKey=${API_KEY}`);
-            const data = await response.json();
-            this.sources = data.sources;
+            this.sources = await new FetchFactory('get', {queryType: 'sources'});
         } catch(e) {
             this.handleError();
         }
@@ -48,11 +47,7 @@ class MainPage extends HTMLElement {
     connectedCallback() {
       this.render();
     }
-
-    async getArticles(source) {
-
-    }
-  
+ 
     async render() {
         this.$errorButton.addEventListener('click', () => {
             try {
@@ -79,9 +74,9 @@ class MainPage extends HTMLElement {
         this.$select.addEventListener('change', async () => {
             try {
                 this.$section.innerHTML = '';
-                const response = await fetch(`https://newsapi.org/v2/top-headlines?sources=${this.$select.value}&apiKey=${API_KEY}`)
-                const data = await response.json();
-                data.articles.forEach(article => {
+                const articles = await new FetchFactory('get', {queryType: 'top-headlines', source: this.$select.value});
+
+                articles.forEach(article => {
                     const articleContainer = document.createElement('my-article');
                     articleContainer.data = JSON.stringify(article);
                     this.$section.appendChild(articleContainer);
