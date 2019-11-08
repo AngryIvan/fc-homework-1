@@ -1,5 +1,6 @@
 import './components/article'
-import mainPageStyle from './style/main-page'
+import mainPageStyle from './style/main-page-style'
+import API_KEY from './constants/API_KEY'
 
 const template = document.createElement('template');
 
@@ -7,6 +8,7 @@ template.innerHTML = `
     <style>${mainPageStyle}</style>
     <div class="content">
         <select></select>
+        <button>Click me for an error</button>
         <section></section>
     </div>
 `;
@@ -19,12 +21,22 @@ class MainPage extends HTMLElement {
       this._shadowRoot.appendChild(template.content.cloneNode(true));
       this.$select = this._shadowRoot.querySelector('select');
       this.$section = this._shadowRoot.querySelector('section');
+      this.$errorButton = this._shadowRoot.querySelector('button')
     }
 
     async getSources() {
-        const response = await fetch`https://newsapi.org/v2/sources?language=en&apiKey=1da957a27579441483751f41847391bf`;
-        const data = await response.json();
-        this.sources = data.sources;
+        try {
+            const response = await fetch(`https://newsapi.org/v2/sources?language=en&apiKey=${API_KEY}`);
+            const data = await response.json();
+            this.sources = data.sources;
+        } catch(e) {
+            this.handleError();
+        }
+
+    }
+
+    handleError() {
+        console.log('There has been an error')
     }
   
     connectedCallback() {
@@ -32,24 +44,40 @@ class MainPage extends HTMLElement {
     }
   
     async render() {
-        await this.getSources();
-        this.sources.forEach(item => {
-            const option = document.createElement('option');
-            option.value = item.id;
-            option.innerHTML = item.name;
-            
-            this.$select.appendChild(option);
-        });
+        this.$errorButton.addEventListener('click', () => {
+            try {
+                throw new Error;
+            } catch {
+                this.handleError();
+            }
+        })
+        try {
+            await this.getSources();
+            this.sources.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.id;
+                option.innerHTML = item.name;
+                
+                this.$select.appendChild(option);
+            });
+        } catch(e) {
+            this.handleError();
+        }
 
         this.$select.addEventListener('change', async () => {
-            this.$section.innerHTML = '';
-            const response = await fetch(`https://newsapi.org/v2/top-headlines?sources=${this.$select.value}&apiKey=1da957a27579441483751f41847391bf`)
-            const data = await response.json();
-            data.articles.forEach(article => {
-                const articleContainer = document.createElement('my-article');
-                articleContainer.data = JSON.stringify(article);
-                this.$section.appendChild(articleContainer);
-            });
+            try {
+                this.$section.innerHTML = '';
+                const response = await fetch(`https://newsapi.org/v2/top-headlines?sources=${this.$select.value}&apiKey=${API_KEY}`)
+                const data = await response.json();
+                data.articles.forEach(article => {
+                    const articleContainer = document.createElement('my-article');
+                    articleContainer.data = JSON.stringify(article);
+                    this.$section.appendChild(articleContainer);
+                });
+            } catch {
+                this.handleError();
+            }
+
         })
     }
   }
