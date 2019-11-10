@@ -25,15 +25,6 @@ class MainPage extends HTMLElement {
       this.$errorButton = this._shadowRoot.querySelector('button')
     }
 
-    async getSources() {
-        try {
-            this.sources = await new FetchFactory('get', {queryType: 'sources'});
-        } catch(e) {
-            this.handleError();
-        }
-
-    }
-
     handleError() {
         import('./components/error').then(module => {
             const handler = module.default;
@@ -59,8 +50,8 @@ class MainPage extends HTMLElement {
         })
 
         try {
-            await this.getSources();
-            this.sources.forEach(item => {
+            const sources = await new FetchFactory('get', {queryType: 'sources'});
+            sources.forEach(item => {
                 const option = document.createElement('option');
                 option.value = item.id;
                 option.innerHTML = item.name;
